@@ -1,4 +1,6 @@
 import 'reflect-metadata';
+import * as dotenv from 'dotenv';
+dotenv.config();
 import { faker } from '@faker-js/faker/locale/ja';
 import { DataSource } from 'typeorm';
 import { GameResultEntity } from '../src/entities/game-result.entity';

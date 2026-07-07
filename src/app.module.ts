@@ -1,5 +1,6 @@
 import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
 import { Module } from '@nestjs/common';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { GraphQLModule } from '@nestjs/graphql';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { join } from 'path';
@@ -13,21 +14,25 @@ import { PlayerModule } from './player/player.module';
 
 @Module({
   imports: [
-    TypeOrmModule.forRoot({
-      type: 'postgres',
-      host: process.env['DB_HOST'] ?? 'localhost',
-      port: parseInt(process.env['DB_PORT'] ?? '5432', 10),
-      username: process.env['DB_USERNAME'] ?? 'jantrack',
-      password: process.env['DB_PASSWORD'] ?? 'jantrack',
-      database: process.env['DB_DATABASE'] ?? 'jantrack',
-      entities: [
-        PlayerEntity,
-        LeagueEntity,
-        LeaguePlayerEntity,
-        GameEntity,
-        GameResultEntity,
-      ],
-      synchronize: false,
+    ConfigModule.forRoot({ isGlobal: true }),
+    TypeOrmModule.forRootAsync({
+      inject: [ConfigService],
+      useFactory: (config: ConfigService) => ({
+        type: 'postgres',
+        host: config.get<string>('DB_HOST', 'localhost'),
+        port: config.get<number>('DB_PORT', 5432),
+        username: config.get<string>('DB_USERNAME', 'jantrack'),
+        password: config.get<string>('DB_PASSWORD', 'jantrack'),
+        database: config.get<string>('DB_DATABASE', 'jantrack'),
+        entities: [
+          PlayerEntity,
+          LeagueEntity,
+          LeaguePlayerEntity,
+          GameEntity,
+          GameResultEntity,
+        ],
+        synchronize: false,
+      }),
     }),
     GraphQLModule.forRoot<ApolloDriverConfig>({
       driver: ApolloDriver,

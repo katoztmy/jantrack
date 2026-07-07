@@ -1,4 +1,6 @@
 import 'reflect-metadata';
+import * as dotenv from 'dotenv';
+dotenv.config();
 import { DataSource } from 'typeorm';
 import { GameResultEntity } from '../entities/game-result.entity';
 import { GameEntity } from '../entities/game.entity';

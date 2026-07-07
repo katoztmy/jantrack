@@ -1,0 +1,53 @@
+# ------------------------------------------------------
+# THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
+# ------------------------------------------------------
+
+"""
+A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
+"""
+scalar DateTime
+
+type Game {
+  id: ID!
+  playedAt: DateTime!
+  results: [GameResult!]!
+  tableNo: Int!
+}
+
+type GameResult {
+  game: Game!
+  player: Player!
+  point: Float!
+  rank: Int!
+  rawScore: Int!
+}
+
+type League {
+  games(limit: Int): [Game!]!
+  id: ID!
+  name: String!
+  players: [Player!]!
+  standings: [StandingModel!]!
+}
+
+type Player {
+  id: ID!
+  name: String!
+  recentResults(limit: Int! = 20): [GameResult!]!
+}
+
+type Query {
+  league(id: ID!): League
+  leagues: [League!]!
+  player(id: ID!): Player
+}
+
+type StandingModel {
+  avgRank: Float!
+  lastRate: Float!
+  player: Player!
+  results: [GameResult!]!
+  topRate: Float!
+  totalGames: Int!
+  totalPoint: Float!
+}
