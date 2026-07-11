@@ -32,6 +32,7 @@ import { PlayerModule } from './player/player.module';
           GameResultEntity,
         ],
         synchronize: false,
+        logging: ['error', 'warn'],
       }),
     }),
     GraphQLModule.forRoot<ApolloDriverConfig>({
