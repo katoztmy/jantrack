@@ -1,3 +1,4 @@
+import './tracing'; // must be first: instrumentation patches modules at require time
 import 'reflect-metadata';
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
