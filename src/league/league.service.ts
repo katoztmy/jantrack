@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { GameResultEntity } from '../entities/game-result.entity';
@@ -9,6 +9,8 @@ import { PlayerEntity } from '../entities/player.entity';
 
 @Injectable()
 export class LeagueService {
+  private readonly logger = new Logger(LeagueService.name);
+
   constructor(
     @InjectRepository(LeagueEntity)
     private readonly leagueRepo: Repository<LeagueEntity>,
@@ -22,8 +24,10 @@ export class LeagueService {
     private readonly playerRepo: Repository<PlayerEntity>,
   ) {}
 
-  findAll(): Promise<LeagueEntity[]> {
-    return this.leagueRepo.find({ order: { createdAt: 'ASC' } });
+  async findAll(): Promise<LeagueEntity[]> {
+    const leagues = await this.leagueRepo.find({ order: { createdAt: 'ASC' } });
+    this.logger.log(`Fetched ${leagues.length} leagues`);
+    return leagues;
   }
 
   findOne(id: string): Promise<LeagueEntity | null> {

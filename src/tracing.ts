@@ -20,6 +20,9 @@ const sdk = new NodeSDK({
       '@opentelemetry/instrumentation-graphql': {
         ignoreResolveSpans: true,
       },
+      // auto-injects OTel-standard keys (trace_id etc.) Cloud Logging ignores;
+      // the app injects logging.googleapis.com/* fields via pino mixin instead
+      '@opentelemetry/instrumentation-pino': { enabled: false },
     }),
   ],
 });
