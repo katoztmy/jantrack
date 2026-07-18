@@ -16,11 +16,15 @@ import { GameModel } from '../graphql/models/game.model';
 import { LeagueModel } from '../graphql/models/league.model';
 import { PlayerModel } from '../graphql/models/player.model';
 import { StandingModel } from '../graphql/models/standing.model';
+import { LeagueLoaders } from './league.loaders';
 import { LeagueService } from './league.service';
 
 @Resolver(() => LeagueModel)
 export class LeagueResolver {
-  constructor(private readonly leagueService: LeagueService) {}
+  constructor(
+    private readonly leagueService: LeagueService,
+    private readonly loaders: LeagueLoaders,
+  ) {}
 
   @Query(() => [LeagueModel])
   leagues(): Promise<LeagueEntity[]> {
@@ -45,14 +49,17 @@ export class LeagueResolver {
     return this.leagueService.findGames(league.id, limit);
   }
 
-  // N+1 ①: プレイヤー一覧取得後、1人ずつ集計クエリを発行
+  // N+1 ①だった箇所: loadは同一tick内でまとめられ、全プレイヤー分が1本のGROUP BYになる
   @ResolveField(() => [StandingModel])
   async standings(@Parent() league: LeagueEntity): Promise<StandingModel[]> {
     const players = await this.leagueService.findLeaguePlayers(league.id);
 
     const standings = await Promise.all(
       players.map(async (player) => {
-        const agg = await this.leagueService.aggregateForPlayer(league.id, player.id);
+        const agg = await this.loaders.aggregateByLeaguePlayer.load({
+          leagueId: league.id,
+          playerId: player.id,
+        });
         const standing = new StandingModel();
         standing.player = player as unknown as PlayerModel;
         standing.leagueId = league.id;
@@ -75,39 +82,42 @@ export class LeagueResolver {
 
 @Resolver(() => StandingModel)
 export class StandingResolver {
-  constructor(private readonly leagueService: LeagueService) {}
+  constructor(private readonly loaders: LeagueLoaders) {}
 
-  // N+1 ②: プレイヤー1人ずつ、そのリーグ内の対局結果を取得
+  // N+1 ②だった箇所: リーグ内全プレイヤーの結果をIN句1本で取得
   @ResolveField(() => [GameResultModel])
   async results(@Parent() standing: StandingModel): Promise<GameResultEntity[]> {
-    return this.leagueService.findResultsForPlayer(standing.leagueId, standing.playerId);
+    return this.loaders.resultsByLeaguePlayer.load({
+      leagueId: standing.leagueId,
+      playerId: standing.playerId,
+    });
   }
 }
 
 @Resolver(() => GameModel)
 export class GameResolver {
-  constructor(private readonly leagueService: LeagueService) {}
+  constructor(private readonly loaders: LeagueLoaders) {}
 
-  // N+1 ③: Gameごとに結果を取得
+  // N+1 ③だった箇所: 全GameのIDをIN句1本にバッチ
   @ResolveField(() => [GameResultModel])
   async results(@Parent() game: GameEntity): Promise<GameResultEntity[]> {
-    return this.leagueService.findResultsForGame(game.id);
+    return this.loaders.resultsByGameId.load(game.id);
   }
 }
 
 @Resolver(() => GameResultModel)
 export class GameResultResolver {
-  constructor(private readonly leagueService: LeagueService) {}
+  constructor(private readonly loaders: LeagueLoaders) {}
 
-  // N+1 ④: GameResultごとにPlayerを取得
+  // N+1 ④だった箇所: 重複playerIdはDataLoaderのキャッシュが吸収する
   @ResolveField(() => PlayerModel)
   async player(@Parent() result: GameResultEntity): Promise<PlayerEntity> {
-    return this.leagueService.findPlayerById(result.playerId);
+    return this.loaders.playerById.load(result.playerId);
   }
 
-  // N+1 ⑤: GameResultごとにGameを取得
+  // N+1 ⑤だった箇所
   @ResolveField(() => GameModel)
   async game(@Parent() result: GameResultEntity): Promise<GameEntity> {
-    return this.leagueService.findGameById(result.gameId);
+    return this.loaders.gameById.load(result.gameId);
   }
 }

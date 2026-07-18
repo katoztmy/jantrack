@@ -5,6 +5,7 @@ import { GameEntity } from '../entities/game.entity';
 import { LeaguePlayerEntity } from '../entities/league-player.entity';
 import { LeagueEntity } from '../entities/league.entity';
 import { PlayerEntity } from '../entities/player.entity';
+import { LeagueLoaders } from './league.loaders';
 import {
   GameResolver,
   GameResultResolver,
@@ -25,6 +26,7 @@ import { LeagueService } from './league.service';
   ],
   providers: [
     LeagueService,
+    LeagueLoaders,
     LeagueResolver,
     StandingResolver,
     GameResolver,
