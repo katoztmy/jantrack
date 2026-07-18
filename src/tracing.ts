@@ -23,6 +23,9 @@ const sdk = new NodeSDK({
       // auto-injects OTel-standard keys (trace_id etc.) Cloud Logging ignores;
       // the app injects logging.googleapis.com/* fields via pino mixin instead
       '@opentelemetry/instrumentation-pino': { enabled: false },
+      // emits a span per .load() call (1,490/request on the demo query),
+      // burying the 9 batched pg spans that matter
+      '@opentelemetry/instrumentation-dataloader': { enabled: false },
     }),
   ],
 });
