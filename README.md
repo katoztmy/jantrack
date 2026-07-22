@@ -153,17 +153,17 @@ query LeagueFull($id: ID!) {
 
 ---
 
-## 意図的に仕込まれた N+1
+## 意図的に仕込んでいた N+1（DataLoader で解消済み）
+
+記事執筆時は下記 5 箇所を N+1 のまま放置していましたが、現在は `LeagueLoaders`（`src/league/league.loaders.ts`）による DataLoader 化で解消しています。`before-dataloader` タグに未修正時点のコードを残しています。
 
 | 箇所 | 内容 |
 |---|---|
-| `League.standings` | プレイヤー 1 人ずつ集計クエリ（SUM/AVG/COUNT）を発行 |
-| `Standing.results` | プレイヤー 1 人ずつ対局結果を `find` で取得 |
-| `Game.results` | Game ごとに `find({ where: { gameId } })` を発行 |
-| `GameResult.player` | GameResult ごとに `findOne` を発行 |
-| `GameResult.game` | GameResult ごとに `findOne` を発行 |
-
-DataLoader・JOIN による一括取得・eager loading はすべて意図的に使用していません。
+| `League.standings` | プレイヤー 1 人ずつ集計クエリ（SUM/AVG/COUNT）を発行 → `aggregateByLeaguePlayer` でバッチ化 |
+| `Standing.results` | プレイヤー 1 人ずつ対局結果を `find` で取得 → `resultsByLeaguePlayer` で IN 句 1 本に |
+| `Game.results` | Game ごとに `find({ where: { gameId } })` を発行 → `resultsByGameId` で IN 句 1 本に |
+| `GameResult.player` | GameResult ごとに `findOne` を発行 → `playerById` でキャッシュ込みバッチ化 |
+| `GameResult.game` | GameResult ごとに `findOne` を発行 → `gameById` でキャッシュ込みバッチ化 |
 
 ---
 
