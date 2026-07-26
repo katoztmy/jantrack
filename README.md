@@ -9,6 +9,9 @@ GraphQL の N+1 問題を**意図的に含んだ状態**で構築しています
 - **NestJS** (code-first GraphQL)
 - **@nestjs/graphql** + **Apollo Driver**
 - **TypeORM** + **PostgreSQL 16**
+- **OpenTelemetry** (auto-instrumentation) + **Cloud Trace** エクスポート
+- **nestjs-pino** による構造化ログ（trace ↔ log 相関付き）
+- **DataLoader** による N+1 バッチ化
 - TypeScript strict mode
 
 ---
